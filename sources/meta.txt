@@ -1,0 +1,23 @@
+dc.contributor.author	Mäki, Jussi	
+dc.date.accessioned	2025-06-02T13:18:02Z	
+dc.date.available	2025-06-02T13:18:02Z	
+dc.date.issued	2025	-
+dc.identifier.uri	https://www.theseus.fi/handle/10024/892721	
+dc.description.abstract	Tässä opinnäytetyössä suunniteltiin ja kehitettiin digitaalinen työnohjaussovellus puhtausalalle. Sovelluksen tavoitteena oli helpottaa työntekijöiden päivittäistä kirjaamista, sujuvoittaa sijaisuuksien hoitoa sekä parantaa poikkeamatilanteiden raportointia ja työn seurantaa. Työn suunnitteluvaiheessa keskityttiin erityisesti käyttäjäystävällisyyteen ja palvelinohjelmiston järkevään suunnitteluun. Projektin tuloksena syntyi toimiva sovelluksen prototyyppi Android, iOS ja web-alustoille.	-
+dc.language.iso	fin	-
+dc.rights	fi=All rights reserved. This publication is copyrighted. You may download, display and print it for Your own personal use. Commercial use is prohibited.|sv=All rights reserved. This publication is copyrighted. You may download, display and print it for Your own personal use. Commercial use is prohibited.|en=All rights reserved. This publication is copyrighted. You may download, display and print it for Your own personal use. Commercial use is prohibited.|	-
+dc.title	Työnohjaussovellus puhtausalalle	-
+dc.type.ontasot	fi=AMK-opinnäytetyö|sv=YH-examensarbete|en=Bachelor's thesis|	-
+dc.identifier.urn	URN:NBN:fi:amk-2025060219006	-
+dc.subject.specialization	Ohjelmistokehityksen suuntautumisvaihtoehto	-
+dc.subject.degreeprogram	fi=Tieto- ja viestintätekniikka|sv=Informations- och kommunikationsteknik|en=Information and Communications Technology|	-
+dc.subject.yso	käyttöliittymät	-
+dc.subject.yso	ohjelmointi	-
+dc.subject.yso	tietokannat	-
+dc.subject.yso	projektit	-
+dc.subject.yso	tekoäly	-
+dc.subject.yso	sovellusohjelmat	-
+dc.subject.yso	suunnittelu	-
+dc.relation.contractor	Vaakku Oy	-
+dc.subject.discipline	Tietotekniikan tutkinto-ohjelma	-
+annif.suggestions.links	http://www.yso.fi/onto/yso/p3927|http://www.yso.fi/onto/yso/p1295|http://www.yso.fi/onto/yso/p4887|http://www.yso.fi/onto/yso/p1380|http://www.yso.fi/onto/yso/p3056|http://www.yso.fi/onto/yso/p3006|http://www.yso.fi/onto/yso/p3128|http://www.yso.fi/onto/yso/p2616|http://www.yso.fi/onto/yso/p8456|http://www.yso.fi/onto/yso/p1377

@@ -1,0 +1,17 @@
+{
+  "name": "ai_trainer_vector_store",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "demo": "node ./src/demo.js",
+    "eval": "node ./src/eval.js",
+    "index:sources": "node ./src/indexSources.js",
+    "index:sources:openai": "node ./src/indexSources.js embedder=openai",
+    "search": "node ./src/search.js"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.2.0",
+    "pdf-parse": "^2.4.5"
+  }
+}

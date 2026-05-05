@@ -1,0 +1,38 @@
+[
+  {
+    "id": "author",
+    "question": "Kuka on työn tekijä?",
+    "relevantChunkIds": ["maki_jussi#0"],
+    "mustContain": ["Jussi Mäki"]
+  },
+  {
+    "id": "platforms",
+    "question": "Mille alustoille prototyyppi tehtiin?",
+    "relevantChunkIds": ["maki_jussi#0", "maki_jussi#45", "maki_jussi#50"],
+    "mustContain": ["Android", "iOS", "web"]
+  },
+  {
+    "id": "upload-library",
+    "question": "Mikä kirjasto käsittelee tiedostojen vastaanoton palvelimella?",
+    "relevantChunkIds": ["maki_jussi#27", "maki_jussi#55", "maki_jussi#56"],
+    "mustContain": ["Multer"]
+  },
+  {
+    "id": "image-processing",
+    "question": "Mihin kirjastoon kuvien prosessointi perustuu?",
+    "relevantChunkIds": ["maki_jussi#56", "maki_jussi#69", "maki_jussi#70", "maki_jussi#71"],
+    "mustContain": ["Sharp"]
+  },
+  {
+    "id": "database",
+    "question": "Mitä tietokantaa käytettiin?",
+    "relevantChunkIds": ["maki_jussi#41", "maki_jussi#45"],
+    "mustContain": ["PostgreSQL"]
+  },
+  {
+    "id": "server-os",
+    "question": "Mikä käyttöjärjestelmä palvelimella oli?",
+    "relevantChunkIds": ["maki_jussi#19", "maki_jussi#40", "maki_jussi#45"],
+    "mustContain": ["Ubuntu Server"]
+  }
+]
