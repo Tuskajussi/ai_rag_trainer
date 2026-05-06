@@ -3,14 +3,13 @@ import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
 
 import {
-  answerQuestionWithSources,
   DEFAULT_ANSWER_MODEL,
   DEFAULT_MAX_OUTPUT_TOKENS,
   formatSourceDetails,
   formatSourceLine
 } from "./openaiAnswer.js";
 import { serializeEmbedder } from "./embedderFactory.js";
-import { rerankCandidatesWithTimings, selectRerankedChunks } from "./reranker.js";
+import { normalizeQueryOptions, resolveCandidateLimit, runQuery } from "./queryPipeline.js";
 import { VectorStore } from "./vectorStore.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,18 +17,10 @@ const __dirname = path.dirname(__filename);
 const storagePath = path.resolve(__dirname, "../data/vector-store.json");
 
 function parseArgs(argv) {
-  const config = {
+  const config = normalizeQueryOptions({
     answerMaxTokens: DEFAULT_MAX_OUTPUT_TOKENS,
-    answerModel: DEFAULT_ANSWER_MODEL,
-    bm25K: 2,
-    candidateTopK: null,
-    finalBm25Min: 1,
-    finalVectorMin: 2,
-    mode: "vector",
-    rerankModel: null,
-    topK: 5,
-    vectorK: 3
-  };
+    answerModel: DEFAULT_ANSWER_MODEL
+  });
   const positional = [];
 
   for (const arg of argv) {
@@ -104,11 +95,11 @@ function parseArgs(argv) {
     }
   }
 
-  return {
+  return normalizeQueryOptions({
     ...config,
     filter,
     query
-  };
+  });
 }
 
 function formatMs(value) {
@@ -138,131 +129,6 @@ function printTimings(timings) {
   console.log("Timings");
   for (const entry of timings) {
     console.log(`${entry.label.padEnd(width)}  ${formatMs(entry.ms)}`);
-  }
-}
-
-async function buildRerankedSelection(store, query, {
-  bm25K,
-  candidatePool,
-  candidateTopK,
-  finalBm25Min,
-  finalVectorMin,
-  filter,
-  rerankModel,
-  topK,
-  vectorK
-}) {
-  const timings = [];
-  const candidateLimit = Number.isFinite(candidateTopK)
-    ? candidateTopK
-    : Math.max(topK, vectorK + bm25K);
-  const hybridProfile = await store.hybridSearchProfile(query, {
-    topK: candidateLimit,
-    filter,
-    vectorK,
-    bm25K,
-    ...(Number.isFinite(candidatePool) ? { candidatePool } : {})
-  });
-  timings.push(...hybridProfile.timings);
-
-  const rerankProfile = await rerankCandidatesWithTimings(query, hybridProfile.results, {
-    topK: hybridProfile.results.length,
-    ...(rerankModel ? { modelId: rerankModel } : {})
-  });
-  timings.push(...rerankProfile.timings);
-
-  const selectionStart = performance.now();
-  const results = selectRerankedChunks(rerankProfile.results, {
-    minBm25: finalBm25Min,
-    minVector: finalVectorMin,
-    topK
-  });
-  timings.push({
-    label: "rerank.selection",
-    ms: performance.now() - selectionStart
-  });
-
-  return {
-    results,
-    timings
-  };
-}
-
-async function runSearch(store, query, {
-  answerMaxTokens,
-  answerModel,
-  bm25K,
-  candidatePool,
-  candidateTopK,
-  finalBm25Min,
-  finalVectorMin,
-  filter,
-  mode,
-  rerankModel,
-  topK,
-  vectorK
-}) {
-  switch (mode) {
-    case "vector": {
-      const profile = await store.vectorSearchProfile(query, { topK, filter });
-      return {
-        results: profile.results,
-        timings: profile.timings
-      };
-    }
-    case "bm25": {
-      const profile = store.bm25SearchProfile(query, { topK, filter });
-      return {
-        results: profile.results,
-        timings: profile.timings
-      };
-    }
-    case "hybrid":
-      return store.hybridSearchProfile(query, {
-        topK,
-        filter,
-        vectorK,
-        bm25K,
-        ...(Number.isFinite(candidatePool) ? { candidatePool } : {})
-      });
-    case "rerank":
-      return buildRerankedSelection(store, query, {
-        bm25K,
-        candidatePool,
-        candidateTopK,
-        finalBm25Min,
-        finalVectorMin,
-        filter,
-        rerankModel,
-        topK,
-        vectorK
-      });
-    case "answer": {
-      const selectedContext = await buildRerankedSelection(store, query, {
-        bm25K,
-        candidatePool,
-        candidateTopK,
-        finalBm25Min,
-        finalVectorMin,
-        filter,
-        rerankModel,
-        topK,
-        vectorK
-      });
-
-      const answer = await answerQuestionWithSources(query, selectedContext.results, {
-        model: answerModel,
-        maxOutputTokens: answerMaxTokens
-      });
-
-      return {
-        answer,
-        chunks: selectedContext.results,
-        timings: [...selectedContext.timings, ...answer.timings]
-      };
-    }
-    default:
-      throw new Error(`Unknown mode "${mode}". Use vector, bm25, hybrid, rerank, or answer.`);
   }
 }
 
@@ -297,7 +163,7 @@ async function main() {
   }
   const loadStoreMs = performance.now() - loadStoreStart;
 
-  const execution = await runSearch(store, query, {
+  const execution = await runQuery(store, query, {
     answerMaxTokens,
     answerModel,
     bm25K,
@@ -331,17 +197,23 @@ async function main() {
     console.log(`Quota: vector=${vectorK} bm25=${bm25K} topK=${topK}`);
   }
   if (mode === "rerank") {
-    const candidateLimit = Number.isFinite(candidateTopK)
-      ? candidateTopK
-      : Math.max(topK, vectorK + bm25K);
+    const candidateLimit = resolveCandidateLimit({
+      bm25K,
+      candidateTopK,
+      topK,
+      vectorK
+    });
     console.log(
       `Candidate quota: vector=${vectorK} bm25=${bm25K} candidateTopK=${candidateLimit} finalTopK=${topK} finalVectorMin=${finalVectorMin} finalBm25Min=${finalBm25Min}`
     );
   }
   if (mode === "answer") {
-    const candidateLimit = Number.isFinite(candidateTopK)
-      ? candidateTopK
-      : Math.max(topK, vectorK + bm25K);
+    const candidateLimit = resolveCandidateLimit({
+      bm25K,
+      candidateTopK,
+      topK,
+      vectorK
+    });
     console.log(
       `Answer context: vector=${vectorK} bm25=${bm25K} candidateTopK=${candidateLimit} selectedChunks=${topK} finalVectorMin=${finalVectorMin} finalBm25Min=${finalBm25Min} model=${answerModel} maxOutputTokens=${answerMaxTokens}`
     );

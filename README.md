@@ -33,6 +33,10 @@ Once this clicks, you can swap the toy embedder for a real embedding model and t
 - [src/demo.js](/C:/git/ai_trainer/src/demo.js)
 - [src/reranker.js](/C:/git/ai_trainer/src/reranker.js)
 - [src/search.js](/C:/git/ai_trainer/src/search.js)
+- [src/server.js](/C:/git/ai_trainer/src/server.js)
+- [public/index.html](/C:/git/ai_trainer/public/index.html)
+- [public/app.js](/C:/git/ai_trainer/public/app.js)
+- [public/styles.css](/C:/git/ai_trainer/public/styles.css)
 
 ## Run it
 
@@ -89,6 +93,30 @@ Or set it directly in PowerShell:
 $env:OPENAI_API_KEY="your-key"
 npm run search -- mode=answer topK=5 vectorK=10 bm25K=10 candidateTopK=10 "Miten valokuvat prosessoidaan nakkilistassa?"
 ```
+
+## Run the local UI
+
+Start the browser workbench:
+
+```bash
+npm run ui
+```
+
+Then open:
+
+```txt
+http://127.0.0.1:4173
+```
+
+The UI lets you:
+
+- ask questions in `vector`, `bm25`, `hybrid`, `rerank`, or `answer` mode
+- inspect timings for each pipeline step
+- inspect returned chunks, metadata, and ranking signals
+- see grounded `Sources` for answer mode
+- reload the current `data/vector-store.json` without restarting the server
+
+The browser UI uses the same query pipeline as the CLI, so the results should match `npm run search`.
 
 ## Index a real PDF from `sources`
 

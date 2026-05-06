@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Trainer Workbench</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Applied Retrieval Workbench</p>
+          <h1>Interrogate the thesis, inspect the pipeline, keep the sources visible.</h1>
+          <p class="hero-text">
+            This interface sits directly on top of the local RAG stack: OpenAI embeddings, BM25 hybrid retrieval,
+            optional cross-encoder reranking, grounded answer generation, and timing traces for every step.
+          </p>
+        </div>
+        <aside class="hero-status card">
+          <div class="status-row">
+            <span class="status-label">Corpus</span>
+            <strong id="status-documents">Loading…</strong>
+          </div>
+          <div class="status-row">
+            <span class="status-label">Chunks</span>
+            <strong id="status-chunks">Loading…</strong>
+          </div>
+          <div class="status-row">
+            <span class="status-label">Embedder</span>
+            <strong id="status-embedder">Loading…</strong>
+          </div>
+          <div class="status-row">
+            <span class="status-label">Chunking</span>
+            <strong id="status-chunking">Loading…</strong>
+          </div>
+          <button id="reload-store" class="ghost-button" type="button">Reload Store</button>
+        </aside>
+      </header>
+
+      <main class="layout">
+        <section class="control-column">
+          <form id="query-form" class="card control-card">
+            <div class="section-head">
+              <h2>Ask The Corpus</h2>
+              <p>Switch modes, widen recall, or force more lexical evidence into the final context.</p>
+            </div>
+
+            <label class="field">
+              <span>Question</span>
+              <textarea id="query" name="query" rows="5" placeholder="Miten valokuvat prosessoidaan nakkilistassa?"></textarea>
+            </label>
+
+            <div class="example-row">
+              <button class="chip example-chip" type="button" data-query="Miten valokuvat prosessoidaan nakkilistassa?">Image processing</button>
+              <button class="chip example-chip" type="button" data-query="Mille alustoille prototyyppi tehtiin?">Platforms</button>
+              <button class="chip example-chip" type="button" data-query="Mitä tietokantaa käytettiin?">Database</button>
+            </div>
+
+            <div class="grid two-up">
+              <label class="field">
+                <span>Mode</span>
+                <select id="mode" name="mode">
+                  <option value="answer">answer</option>
+                  <option value="hybrid">hybrid</option>
+                  <option value="rerank">rerank</option>
+                  <option value="vector">vector</option>
+                  <option value="bm25">bm25</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Filter</span>
+                <input id="filter" name="filter" type="text" placeholder='sourceAuthor=Mäki, Jussi'>
+              </label>
+            </div>
+
+            <details class="advanced" open>
+              <summary>Retrieval Controls</summary>
+              <div class="grid three-up">
+                <label class="field">
+                  <span>Top K</span>
+                  <input id="topK" name="topK" type="number" min="1" step="1" value="5">
+                </label>
+                <label class="field">
+                  <span>Vector K</span>
+                  <input id="vectorK" name="vectorK" type="number" min="1" step="1" value="10">
+                </label>
+                <label class="field">
+                  <span>BM25 K</span>
+                  <input id="bm25K" name="bm25K" type="number" min="1" step="1" value="10">
+                </label>
+                <label class="field">
+                  <span>Candidate Top K</span>
+                  <input id="candidateTopK" name="candidateTopK" type="number" min="1" step="1" value="10">
+                </label>
+                <label class="field">
+                  <span>Min Vector</span>
+                  <input id="finalVectorMin" name="finalVectorMin" type="number" min="0" step="1" value="2">
+                </label>
+                <label class="field">
+                  <span>Min BM25</span>
+                  <input id="finalBm25Min" name="finalBm25Min" type="number" min="0" step="1" value="1">
+                </label>
+              </div>
+            </details>
+
+            <details class="advanced">
+              <summary>Model Controls</summary>
+              <div class="grid two-up">
+                <label class="field">
+                  <span>Answer Model</span>
+                  <input id="answerModel" name="answerModel" type="text" value="gpt-5.4-mini">
+                </label>
+                <label class="field">
+                  <span>Max Output Tokens</span>
+                  <input id="answerMaxTokens" name="answerMaxTokens" type="number" min="100" step="50" value="700">
+                </label>
+              </div>
+            </details>
+
+            <div class="actions">
+              <button id="run-query" class="primary-button" type="submit">Run Query</button>
+              <span id="run-state" class="run-state">Idle</span>
+            </div>
+          </form>
+
+          <section class="card timing-card">
+            <div class="section-head">
+              <h2>Timings</h2>
+              <p>See where the time actually goes.</p>
+            </div>
+            <div id="timings" class="timing-list empty-state">
+              Run a query to see the pipeline timings.
+            </div>
+          </section>
+        </section>
+
+        <section class="result-column">
+          <section id="answer-panel" class="card result-card hidden">
+            <div class="section-head">
+              <h2>Answer</h2>
+              <p id="answer-meta">Generated from the currently selected chunk set.</p>
+            </div>
+            <div id="answer-note" class="warning-banner hidden"></div>
+            <article id="answer-text" class="answer-text"></article>
+          </section>
+
+          <section id="sources-panel" class="card result-card hidden">
+            <div class="section-head">
+              <h2>Sources</h2>
+              <p>The model must point back to exact chunk IDs.</p>
+            </div>
+            <div id="sources" class="stack"></div>
+          </section>
+
+          <section class="card result-card">
+            <div class="section-head">
+              <h2 id="results-title">Results</h2>
+              <p id="results-subtitle">The returned chunks or selected answer context will appear here.</p>
+            </div>
+            <div id="results" class="stack empty-state">
+              Run a query to inspect retrieved chunks, ranks, scores, and metadata.
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <template id="timing-template">
+      <div class="timing-row">
+        <div class="timing-label"></div>
+        <div class="timing-bar"><span></span></div>
+        <div class="timing-value"></div>
+      </div>
+    </template>
+
+    <template id="chunk-template">
+      <article class="chunk-card">
+        <header class="chunk-head">
+          <div>
+            <h3 class="chunk-title"></h3>
+            <p class="chunk-subtitle"></p>
+          </div>
+          <div class="score-pill"></div>
+        </header>
+        <div class="chip-row"></div>
+        <p class="chunk-text"></p>
+        <details class="metadata-box">
+          <summary>Metadata</summary>
+          <pre></pre>
+        </details>
+      </article>
+    </template>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
