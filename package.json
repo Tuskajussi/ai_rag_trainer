@@ -9,6 +9,7 @@
     "index:sources": "node ./src/indexSources.js",
     "index:sources:openai": "node ./src/indexSources.js embedder=openai",
     "search": "node ./src/search.js",
+    "train:simple": "node ./src/trainSimpleModel.js",
     "ui": "node ./src/server.js"
   },
   "dependencies": {
