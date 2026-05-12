@@ -5,12 +5,31 @@ This project is a small, from-scratch vector store built in plain Node.js.
 It is intentionally simple:
 
 - It chunks documents into overlapping word windows.
-- It converts text into vectors with a local hashing embedder.
+- It converts text into vectors using either a local hashing embedder (default, no API key needed) or OpenAI embeddings (`text-embedding-3-small` / `text-embedding-3-large`).
 - It supports BM25 lexical retrieval over the same chunks.
 - It stores vectors, chunk text, and metadata in a JSON file.
 - It runs nearest-neighbor search with cosine similarity.
 
 This is a teaching system, not a production semantic search engine.
+
+## Train your first model
+
+If you want the smallest real training loop in this repo, run:
+
+```bash
+npm run train:simple
+```
+
+That example lives in [src/trainSimpleModel.js](/C:/git/ai_trainer/src/trainSimpleModel.js) and is explained in [docs/train-simple-model.md](/C:/git/ai_trainer/docs/train-simple-model.md).
+
+It trains a tiny linear model from scratch using:
+
+- weights
+- bias
+- mean squared error
+- gradient descent
+
+This is the best first step before moving to logistic regression or neural nets.
 
 ## Why this is useful
 
